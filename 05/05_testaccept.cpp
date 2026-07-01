@@ -1,6 +1,6 @@
 #include "common.h"
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
     if (argc <= 2) {
         printf("usage: %s ip_address port_number\n", basename(argv[0]));
