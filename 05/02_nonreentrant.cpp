@@ -1,5 +1,4 @@
-#include <arpa/inet.h>
-#include <stdio.h>
+#include "common.h"
 
 void non_reentrant()
 {
