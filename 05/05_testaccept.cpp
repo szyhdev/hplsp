@@ -39,19 +39,21 @@ int main(int argc, char* argv[])
     sleep(20);
     printf("wake up\n");
 
-    struct sockaddr_in client;
-    socklen_t client_addrlen = sizeof(client);
-    int connfd = accept(sockfd, (struct sockaddr *)&client, &client_addrlen);
-    if (connfd < 0) {
-        printf("accept error: %d\n", errno);
-    } else {
-        char remote[INET_ADDRSTRLEN];
-        printf("connected with ip: %s and port: %d\n",
-                inet_ntop(AF_INET, &client.sin_addr, remote, INET_ADDRSTRLEN),
-                ntohs(client.sin_port));
-        close(connfd);
+    struct sockaddr_in client_addr;
+    socklen_t client_addrlen = sizeof(client_addr);
+    int connfd = accept(sockfd, (struct sockaddr *)&client_addr, &client_addrlen);
+    if (connfd == -1) {
+        printf("accept socket error: %d\n", errno);
+        close(sockfd);
+        return -1;
     }
 
+    char remote[INET_ADDRSTRLEN];
+    printf("connected with ip: %s and port: %d\n",
+            inet_ntop(AF_INET, &client_addr.sin_addr, remote, INET_ADDRSTRLEN),
+            ntohs(client_addr.sin_port));
+
+    close(connfd);
     close(sockfd);
 
     return 0;
