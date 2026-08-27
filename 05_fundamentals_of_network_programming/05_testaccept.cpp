@@ -9,19 +9,19 @@ int main(int argc, char *argv[])
     const char *ip = argv[1];
     int port = atoi(argv[2]);
 
-    struct sockaddr_in address;
-    bzero(&address, sizeof(address));
-    address.sin_family = AF_INET;
-    inet_pton(AF_INET, ip, &address.sin_addr);
-    address.sin_port = htons(port);
-
     int sockfd = socket(PF_INET, SOCK_STREAM, 0);
     if (sockfd == -1) {
         printf("create socket error: %d\n", errno);
         return -1;
     }
 
-    int ret = bind(sockfd, (struct sockaddr *)&address, sizeof(address));
+    struct sockaddr_in addr;
+    bzero(&addr, sizeof(addr));
+    addr.sin_family = AF_INET;
+    inet_pton(AF_INET, ip, &addr.sin_addr);
+    addr.sin_port = htons(port);
+
+    int ret = bind(sockfd, (struct sockaddr *)&addr, sizeof(addr));
     if (ret == -1) {
         printf("bind socket error: %d\n", errno);
         close(sockfd);
@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    printf("sleep for 20s\n");
+    printf("sleep for 20s...\n");
     sleep(20);
     printf("wake up\n");
 
@@ -48,9 +48,9 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    char remote[INET_ADDRSTRLEN];
+    char remote_addr[INET_ADDRSTRLEN];
     printf("connected with ip: %s and port: %d\n",
-            inet_ntop(AF_INET, &client_addr.sin_addr, remote, INET_ADDRSTRLEN),
+            inet_ntop(AF_INET, &client_addr.sin_addr, remote_addr, INET_ADDRSTRLEN),
             ntohs(client_addr.sin_port));
 
     close(connfd);
