@@ -1,7 +1,5 @@
 #include "common.h"
 
-#define INET_ADDRSTRLEN 16
-
 void non_reentrant()
 {
     struct in_addr addr1, addr2;
