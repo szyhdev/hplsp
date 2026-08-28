@@ -9,17 +9,17 @@ int main(int argc, char *argv[])
     const char *ip = argv[1];
     int port = atoi(argv[2]);
 
-    struct sockaddr_in server_addr;
-    bzero(&server_addr, sizeof(server_addr));
-    server_addr.sin_family = AF_INET;
-    inet_pton(AF_INET, ip, &server_addr.sin_addr);
-    server_addr.sin_port = htons(port);
-
     int sockfd = socket(PF_INET, SOCK_STREAM, 0);
     if (sockfd == -1) {
         printf("create socket error: %d\n", errno);
         return -1;
     }
+
+    struct sockaddr_in server_addr;
+    bzero(&server_addr, sizeof(server_addr));
+    server_addr.sin_family = AF_INET;
+    inet_pton(AF_INET, ip, &server_addr.sin_addr);
+    server_addr.sin_port = htons(port);
 
     int ret = connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr));
     if (ret == -1) {
@@ -28,8 +28,8 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    const char *oob_data = "abc";
     const char *normal_data = "123";
+    const char *oob_data = "abc";
     ret = send(sockfd, normal_data, strlen(normal_data), 0);
     printf("sent %d bytes of normal data '%s'\n", ret, normal_data);
     ret = send(sockfd, oob_data, strlen(oob_data), MSG_OOB);
