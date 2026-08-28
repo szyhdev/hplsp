@@ -1,6 +1,6 @@
 #include "common.h"
 
-// #define USE_SIGURG
+#define USE_SIGURG
 
 #define BUFFER_SIZE 1024
 
@@ -90,21 +90,45 @@ int main(int argc, char *argv[])
 
     memset(buffer, '\0', BUFFER_SIZE);
     ret = recv(connfd, buffer, BUFFER_SIZE - 1, 0);
-    printf("got %d bytes of normal data: '%s'\n", ret, buffer);
+    if (ret == -1) {
+        printf("recv socket error: %d\n", errno);
+    } else if (ret == 0) {
+        printf("connection closed by client\n");
+    } else {
+        printf("got %d bytes of normal data: '%s'\n", ret, buffer);
+    }
 
 #if !defined(USE_SIGURG)
     memset(buffer, '\0', BUFFER_SIZE);
     ret = recv(connfd, buffer, BUFFER_SIZE - 1, MSG_OOB);
-    printf("got %d bytes of oob data: '%s'\n", ret, buffer);
+    if (ret == -1) {
+        printf("recv socket error: %d\n", errno);
+    } else if (ret == 0) {
+        printf("connection closed by client\n");
+    } else {
+        printf("got %d bytes of oob data: '%s'\n", ret, buffer);
+    }
 #endif
 
     memset(buffer, '\0', BUFFER_SIZE);
     ret = recv(connfd, buffer, BUFFER_SIZE - 1, 0);
-    printf("got %d bytes of normal data: '%s'\n", ret, buffer);
+    if (ret == -1) {
+        printf("recv socket error: %d\n", errno);
+    } else if (ret == 0) {
+        printf("connection closed by client\n");
+    } else {
+        printf("got %d bytes of normal data: '%s'\n", ret, buffer);
+    }
 
     memset(buffer, '\0', BUFFER_SIZE);
     ret = recv(connfd, buffer, BUFFER_SIZE - 1, 0);
-    printf("got %d bytes of normal data: '%s'\n", ret, buffer);
+    if (ret == -1) {
+        printf("recv socket error: %d\n", errno);
+    } else if (ret == 0) {
+        printf("connection closed by client\n");
+    } else {
+        printf("got %d bytes of normal data: '%s'\n", ret, buffer);
+    }
 
     close(connfd);
     close(sockfd);
