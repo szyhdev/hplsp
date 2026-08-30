@@ -14,3 +14,4 @@
 #include <unistd.h>
 
 int setreuseaddr(int fd);
+int trim_crlf(char *buf, int buf_len);
