@@ -76,7 +76,6 @@ int main(int argc, char *argv[])
         close(filefd);
         return -1;
     }
-
     printf("%s sent (size = %ld)\n", file_name, stat_buf.st_size);
 
     close(connfd);
