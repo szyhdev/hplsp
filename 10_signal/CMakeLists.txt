@@ -1,0 +1,26 @@
+cmake_minimum_required(VERSION 3.22)
+
+project(10_signal LANGUAGES CXX VERSION 1.0)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set(common_file "${CMAKE_CURRENT_SOURCE_DIR}/common.cpp")
+
+if(NOT DEFINED EXEFILE OR EXEFILE STREQUAL "all")
+    file(GLOB SOURCE_FILES "*.cpp")
+    list(REMOVE_ITEM SOURCE_FILES ${common_file})
+    foreach(source_file ${SOURCE_FILES})
+        get_filename_component(target_name ${source_file} NAME_WE)
+        add_executable(${target_name} ${source_file} ${common_file})
+    endforeach()
+else()
+    if(EXEFILE STREQUAL "01_unievent")
+        set(SOURCES 01_unievent.cpp ${common_file})
+    elseif(EXEFILE STREQUAL "03_sigurg")
+        set(SOURCES 03_sigurg.cpp ${common_file})
+    else()
+        message(FATAL_ERROR "Unknown EXEFILE: '${EXEFILE}'")
+    endif()
+    add_executable(${EXEFILE} ${SOURCES})
+endif()
