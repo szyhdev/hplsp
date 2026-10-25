@@ -28,13 +28,36 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    // Notes: If this client sends OOB data immediately after connected, and if
+    //        the server (07_oobrecv.cpp) is started with valgrind, the server
+    //        will miss the SIGURG signal. So, the below line of code is added
+    //        to slow this client down, just for debugging.
+    // usleep(100000);
+
     const char *normal_data = "123";
-    const char *oob_data = "abc";
     ret = send(sockfd, normal_data, strlen(normal_data), 0);
+    if (ret == -1) {
+        printf("send socket error (normal): %d\n", errno);
+        close(sockfd);
+        return -1;
+    }
     printf("sent %d bytes of normal data '%s'\n", ret, normal_data);
+
+    const char *oob_data = "abc";
     ret = send(sockfd, oob_data, strlen(oob_data), MSG_OOB);
-    printf("sent %d bytes of oob data '%s'\n", ret, oob_data);
+    if (ret == -1) {
+        printf("send socket error (OOB): %d\n", errno);
+        close(sockfd);
+        return -1;
+    }
+    printf("sent %d bytes of OOB data '%s'\n", ret, oob_data);
+
     ret = send(sockfd, normal_data, strlen(normal_data), 0);
+    if (ret == -1) {
+        printf("send socket error (normal): %d\n", errno);
+        close(sockfd);
+        return -1;
+    }
     printf("sent %d bytes of normal data '%s'\n", ret, normal_data);
 
     close(sockfd);
@@ -42,4 +65,4 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-// gcc -o 06_oobsend 06_oobsend.cpp
+// g++ -o 06_oobsend 06_oobsend.cpp
