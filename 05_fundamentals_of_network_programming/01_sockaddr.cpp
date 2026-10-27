@@ -10,7 +10,7 @@ const char *get_family(struct sockaddr_storage *storage)
         case AF_UNIX:
             return "Unix Domain";
         default:
-            return "unknown";
+            return "unknown family";
     }
 }
 
@@ -82,3 +82,5 @@ int main()
 
     return 0;
 }
+
+// g++ -o 01_sockaddr 01_sockaddr.cpp
