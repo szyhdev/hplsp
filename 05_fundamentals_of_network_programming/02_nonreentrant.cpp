@@ -1,10 +1,13 @@
 #include "common.h"
 
+static char ip_addr1[] = "192.168.1.1";
+static char ip_addr2[] = "10.0.0.1";
+
 void non_reentrant()
 {
     struct in_addr addr1, addr2;
-    addr1.s_addr = inet_addr("192.168.1.1");
-    addr2.s_addr = inet_addr("10.0.0.1");
+    addr1.s_addr = inet_addr(ip_addr1);
+    addr2.s_addr = inet_addr(ip_addr2);
     printf("integer addr1: %d\n", addr1.s_addr);
     printf("integer addr2: %d\n", addr2.s_addr);
 
@@ -17,19 +20,33 @@ void non_reentrant()
 
 void reentrant()
 {
-    struct in_addr addr;
-    if (inet_pton(AF_INET, "192.168.1.1", &addr) == 1) {
-        printf("integer addr: %d\n", addr.s_addr);
-    } else {
+    struct in_addr addr1;
+    if (inet_pton(AF_INET, ip_addr1, &addr1) != 1) {
         printf("inet_pton error: %d\n", errno);
+        return;
     }
+    printf("integer addr1: %d\n", addr1.s_addr);
 
-    char buf[INET_ADDRSTRLEN];
-    if (inet_ntop(AF_INET, &addr, buf, sizeof(buf)) != NULL) {
-        printf("string addr: %s\n", buf);
-    } else {
-        printf("inet_ntop error: %d\n", errno);
+    struct in_addr addr2;
+    if (inet_pton(AF_INET, ip_addr2, &addr2) != 1) {
+        printf("inet_pton error: %d\n", errno);
+        return;
     }
+    printf("integer addr2: %d\n", addr2.s_addr);
+
+    char buf1[INET_ADDRSTRLEN];
+    if (inet_ntop(AF_INET, &addr1, buf1, sizeof(buf1)) == NULL) {
+        printf("inet_ntop error: %d\n", errno);
+        return;
+    }
+    printf("string addr1: %s\n", buf1);
+
+    char buf2[INET_ADDRSTRLEN];
+    if (inet_ntop(AF_INET, &addr2, buf2, sizeof(buf2)) == NULL) {
+        printf("inet_ntop error: %d\n", errno);
+        return;
+    }
+    printf("string addr2: %s\n", buf2);
 }
 
 int main()
@@ -40,4 +57,4 @@ int main()
     return 0;
 }
 
-// gcc -o 02_nonreentrant 02_nonreentrant.cpp
+// g++ -o 02_nonreentrant 02_nonreentrant.cpp
