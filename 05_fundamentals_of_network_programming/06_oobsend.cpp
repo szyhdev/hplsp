@@ -3,11 +3,15 @@
 int main(int argc, char *argv[])
 {
     if (argc <= 2) {
-        printf("usage: %s ip_address port_number\n", basename(argv[0]));
+        printf("usage: %s ip_address port_number [wait_usec]\n", basename(argv[0]));
         return 1;
     }
     const char *ip = argv[1];
     int port = atoi(argv[2]);
+    int wait_usec = 0;
+    if (argc > 3) {
+        wait_usec = atoi(argv[3]);
+    }
 
     int sockfd = socket(PF_INET, SOCK_STREAM, 0);
     if (sockfd == -1) {
@@ -32,7 +36,7 @@ int main(int argc, char *argv[])
     //        the server (07_oobrecv.cpp) is started with valgrind, the server
     //        will miss the SIGURG signal. So, the below line of code is added
     //        to slow this client down, just for debugging.
-    // usleep(100000);
+    usleep(wait_usec);
 
     const char *normal_data = "123";
     ret = send(sockfd, normal_data, strlen(normal_data), 0);
