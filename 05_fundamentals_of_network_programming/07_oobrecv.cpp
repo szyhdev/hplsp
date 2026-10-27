@@ -2,7 +2,7 @@
 
 #define BUFFER_SIZE 1024
 
-volatile sig_atomic_t oob_pending = 0;
+static volatile sig_atomic_t oob_pending = 0;
 
 void sigurg_handler(int sig)
 {
@@ -69,8 +69,9 @@ int main(int argc, char *argv[])
     }
 
     // Issue 1: Even if fcntl() is called immediately after accept(), the SIGURG
-    //          signal may still be missed in some cases. A better approach is
-    //          to use poll() to monitor for POLLPRI events.
+    //          signal may still be missed in some cases.
+    //          A better approach is to use poll() to monitor for POLLPRI events.
+    //          See 02_use_poll.cpp, 03_use_epoll.cpp and 03_sigurg.cpp
     if (fcntl(connfd, F_SETOWN, getpid()) == -1) {
         printf("fcntl socket F_SETOWN error: %d\n", errno);
         close(connfd);
