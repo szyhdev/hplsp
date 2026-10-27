@@ -13,7 +13,7 @@ void byteorder()
     } else if ((test.union_bytes[0] == 2) && (test.union_bytes[1] == 1)) {
         printf("little endian\n");
     } else {
-        printf("unknown\n");
+        printf("unknown byte order\n");
     }
 }
 
@@ -24,4 +24,4 @@ int main()
     return 0;
 }
 
-// gcc -o 01_byteorder 01_byteorder.cpp
+// g++ -o 01_byteorder 01_byteorder.cpp
