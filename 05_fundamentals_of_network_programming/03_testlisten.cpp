@@ -1,17 +1,14 @@
 #include "common.h"
 
-static bool stop = false;
+static volatile sig_atomic_t stop = 0;
 
-static void handle_term(int sig)
+void sigterm_handler(int sig)
 {
-    printf("SIGTERM received\n");
-    stop = true;
+    stop = 1;
 }
 
 int main(int argc, char *argv[])
 {
-    signal(SIGTERM, handle_term);
-
     if (argc <= 3) {
         printf("usage: %s ip_address port_number backlog\n", basename(argv[0]));
         return 1;
@@ -19,6 +16,16 @@ int main(int argc, char *argv[])
     const char *ip = argv[1];
     int port = atoi(argv[2]);
     int backlog = atoi(argv[3]);
+
+    struct sigaction sa;
+    memset(&sa, '\0', sizeof(sa));
+    sa.sa_handler = sigterm_handler;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+    if (sigaction(SIGTERM, &sa, nullptr) == -1) {
+        printf("sigaction SIGTERM error: %d\n", errno);
+        return -1;
+    }
 
     int sockfd = socket(PF_INET, SOCK_STREAM, 0);
     if (sockfd == -1) {
@@ -46,8 +53,12 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    while (!stop) {
+    while (1) {
         sleep(1);
+        if (stop == 1) {
+            printf("SIGTERM received\n");
+            break;
+        }
     }
 
     close(sockfd);
@@ -55,4 +66,4 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-// gcc -o 03_testlisten 03_testlisten.cpp
+// g++ -o 03_testlisten 03_testlisten.cpp
