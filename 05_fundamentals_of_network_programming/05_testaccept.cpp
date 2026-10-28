@@ -59,4 +59,4 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-// gcc -o 05_testaccept 05_testaccept.cpp
+// g++ -o 05_testaccept 05_testaccept.cpp
