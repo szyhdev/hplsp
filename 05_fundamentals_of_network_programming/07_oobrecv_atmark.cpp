@@ -95,6 +95,9 @@ int main(int argc, char *argv[])
             ret = trim_crlf(buffer, ret);
             printf("got %d bytes of %s data: '%s'\n", ret, data_type, buffer);
         }
+
+        // simulate polling via usleep
+        usleep(10000);
     }
 
     close(connfd);
