@@ -91,14 +91,14 @@ int main(int argc, char *argv[])
                 int connfd = accept(sockfd, (struct sockaddr *)&client_addr, &client_addrlen);
                 if (connfd == -1) {
                     int err = errno;
-                    if (errno == EINTR) {
+                    if (err == EINTR) {
                         printf("accept socket interrupted: %d\n", err);
                     } else if ((err == EAGAIN) || (err == EWOULDBLOCK)) {
                         printf("accept socket error: %d (EAGAIN/EWOULDBLOCK)\n", err);
                     } else if (err == ECONNABORTED) {
                         printf("accept socket error: %d (ECONNABORTED)\n", err);
                     } else {
-                        printf("accept socket error: %d\n", errno);
+                        printf("accept socket error: %d\n", err);
                         quit = true;
                         break;
                     }
@@ -106,8 +106,8 @@ int main(int argc, char *argv[])
                     addfd(epollfd, connfd, &connfds, false, true, false);
                     char remote_addr[INET_ADDRSTRLEN];
                     printf("connected with ip: %s and port: %d (total = %ld)\n",
-                        inet_ntop(AF_INET, &client_addr.sin_addr, remote_addr, INET_ADDRSTRLEN),
-                        ntohs(client_addr.sin_port), connfds.size());
+                            inet_ntop(AF_INET, &client_addr.sin_addr, remote_addr, INET_ADDRSTRLEN),
+                            ntohs(client_addr.sin_port), connfds.size());
                 }
             } else {
                 // urgent data
@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
                     int ret = recv(eventfd, buffer, sizeof(buffer) - 1, MSG_OOB);
                     if (ret == -1) {
                         int err = errno;
-                        if (errno == EINTR) {
+                        if (err == EINTR) {
                             printf("recv socket interrupted (OOB): %d\n", err);
                         } else if ((err == EAGAIN) || (err == EWOULDBLOCK)) {
                             printf("recv socket error (OOB): %d (EAGAIN/EWOULDBLOCK)\n", err);
@@ -138,7 +138,7 @@ int main(int argc, char *argv[])
                     int ret = recv(eventfd, buffer, sizeof(buffer) - 1, 0);
                     if (ret == -1) {
                         int err = errno;
-                        if (errno == EINTR) {
+                        if (err == EINTR) {
                             printf("recv socket interrupted (normal): %d\n", err);
                         } else if ((err == EAGAIN) || (err == EWOULDBLOCK)) {
                             // printf("recv socket error (normal): %d (EAGAIN/EWOULDBLOCK)\n", err);
