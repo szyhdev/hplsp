@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
             ret = recv(connfd, buffer, sizeof(buffer) - 1, MSG_OOB);
             if (ret == -1) {
                 int err = errno;
-                if (errno == EINTR) {
+                if (err == EINTR) {
                     printf("recv socket interrupted (OOB): %d\n", err);
                 } else if (err == EAGAIN || err == EWOULDBLOCK) {
                     printf("recv socket error (OOB): %d (EAGAIN/EWOULDBLOCK)\n", err);
