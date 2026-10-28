@@ -101,8 +101,6 @@ int main(int argc, char *argv[])
 
         // urgent data
         if (pending) {  // Issue 2
-            printf("oob_pending\n");
-
             ret = recv(connfd, buffer, sizeof(buffer) - 1, MSG_OOB);
             if (ret == -1) {
                 int err = errno;
