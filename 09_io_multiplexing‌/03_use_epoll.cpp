@@ -3,27 +3,6 @@
 #define BUFFER_SIZE 1024
 #define MAX_EVENT_NUMBER 1024
 
-void addfd(int epollfd, std::vector<int> &connfds, int connfd)
-{
-    epoll_event event;
-    event.data.fd = connfd;
-    event.events = EPOLLIN | EPOLLPRI;
-    if (epoll_ctl(epollfd, EPOLL_CTL_ADD, connfd, &event) == -1) {
-        printf("epoll_ctl ADD error: %d\n", errno);
-        close(connfd);
-    }
-    connfds.push_back(connfd);
-}
-
-void removefd(int epollfd, std::vector<int> &connfds, int connfd)
-{
-    if (epoll_ctl(epollfd, EPOLL_CTL_DEL, connfd, NULL) == -1) {
-        printf("epoll_ctl DEL error: %d\n", errno);
-    }
-    close(connfd);
-    std::erase(connfds, connfd);
-}
-
 int main(int argc, char *argv[])
 {
     if (argc <= 2) {
@@ -87,6 +66,7 @@ int main(int argc, char *argv[])
     connfds.reserve(10);
 
     char buffer[BUFFER_SIZE];
+    bool quit = false;
     while (1) {
         // epoll_wait
         ret = epoll_wait(epollfd, events, MAX_EVENT_NUMBER, -1);
@@ -102,7 +82,6 @@ int main(int argc, char *argv[])
         }
         printf("waited: %d\n", ret);
 
-        bool quit = false;
         for (int i = 0; i < ret; i++) {
             int eventfd = events[i].data.fd;
             if (eventfd == sockfd) {
@@ -124,7 +103,7 @@ int main(int argc, char *argv[])
                         break;
                     }
                 } else {
-                    addfd(epollfd, connfds, connfd);
+                    addfd(epollfd, connfd, &connfds, false, true, false);
                     char remote_addr[INET_ADDRSTRLEN];
                     printf("connected with ip: %s and port: %d (total = %ld)\n",
                         inet_ntop(AF_INET, &client_addr.sin_addr, remote_addr, INET_ADDRSTRLEN),
@@ -142,11 +121,11 @@ int main(int argc, char *argv[])
                             printf("recv socket error (OOB): %d (EAGAIN/EWOULDBLOCK)\n", err);
                         } else {
                             printf("recv socket error (OOB): %d\n", err);
-                            removefd(epollfd, connfds, eventfd);
+                            removefd(epollfd, eventfd, &connfds);
                             continue;
                         }
                     } else if (ret == 0) {
-                        removefd(epollfd, connfds, eventfd);
+                        removefd(epollfd, eventfd, &connfds);
                         continue;
                     } else {
                         buffer[ret] = '\0';
@@ -162,13 +141,13 @@ int main(int argc, char *argv[])
                         if (errno == EINTR) {
                             printf("recv socket interrupted (normal): %d\n", err);
                         } else if ((err == EAGAIN) || (err == EWOULDBLOCK)) {
-                            printf("recv socket error (normal): %d (EAGAIN/EWOULDBLOCK)\n", err);
+                            // printf("recv socket error (normal): %d (EAGAIN/EWOULDBLOCK)\n", err);
                         } else {
                             printf("recv socket error (normal): %d\n", err);
-                            removefd(epollfd, connfds, eventfd);
+                            removefd(epollfd, eventfd, &connfds);
                         }
                     } else if (ret == 0) {
-                        removefd(epollfd, connfds, eventfd);
+                        removefd(epollfd, eventfd, &connfds);
                         printf("connection closed by client (total = %ld)\n", connfds.size());
                     } else {
                         buffer[ret] = '\0';
@@ -176,7 +155,7 @@ int main(int argc, char *argv[])
                         printf("got %d bytes of normal data: %s\n", ret, buffer);
                         quit = (strncmp(buffer, "quit", 4) == 0);
                         if (quit) {
-                            removefd(epollfd, connfds, eventfd);
+                            removefd(epollfd, eventfd, &connfds);
                             break;
                         }
                     }
