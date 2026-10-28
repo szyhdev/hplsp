@@ -1,5 +1,36 @@
 #include "common.h"
 
+void print_local_addr(int sockfd)
+{
+    struct sockaddr_in local_addr;
+    bzero(&local_addr, sizeof(local_addr));
+    socklen_t local_addrlen = sizeof(local_addr);
+
+    if (getsockname(sockfd, (struct sockaddr *)&local_addr, &local_addrlen) == -1) {
+        printf("getsockname error: %d\n", errno);
+    } else {
+        char local_ip[INET_ADDRSTRLEN];
+        printf("local IP addr: %s and port: %d\n",
+                inet_ntop(AF_INET, &local_addr.sin_addr, local_ip, INET_ADDRSTRLEN),
+                ntohs(local_addr.sin_port));
+    }
+}
+
+void print_peer_addr(int sockfd)
+{
+    struct sockaddr_in peer_addr;
+    socklen_t peer_addrlen = sizeof(peer_addr);
+
+    if (getpeername(sockfd, (sockaddr *)&peer_addr, &peer_addrlen) == -1) {
+        printf("getpeername error: %d\n", errno);
+    } else {
+        char peer_ip[INET_ADDRSTRLEN];
+        printf("peer IP addr: %s and port: %d\n",
+                inet_ntop(AF_INET, &peer_addr.sin_addr, peer_ip, INET_ADDRSTRLEN),
+                ntohs(peer_addr.sin_port));
+    }
+}
+
 int main(int argc, char *argv[])
 {
     if (argc <= 2) {
@@ -63,6 +94,12 @@ int main(int argc, char *argv[])
         return -1;
     }
     printf("sent %d bytes of normal data '%s'\n", ret, normal_data);
+
+    if (argc > 3) {
+        printf("\n");
+        print_local_addr(sockfd);
+        print_peer_addr(sockfd);
+    }
 
     close(sockfd);
 
