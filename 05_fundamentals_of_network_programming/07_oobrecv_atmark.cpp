@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
     int oobinline = 1;
     ret = setsockopt(connfd, SOL_SOCKET, SO_OOBINLINE, &oobinline, sizeof(oobinline));
     if (ret == -1) {
-        printf("setsocketopt error: %d\n", errno);
+        printf("setsocketopt SO_OOBINLINE error: %d\n", errno);
         close(connfd);
         close(sockfd);
         return -1;
@@ -62,39 +62,38 @@ int main(int argc, char *argv[])
 
     char buffer[BUFFER_SIZE];
     while (1) {
-        bool is_obbdata;
+        bool is_oobdata;
         int atmark = sockatmark(connfd);
         if (atmark == -1) {
             printf("sockatmark error: %d\n", errno);
             break;
         } else if (atmark == 1) {
-            is_obbdata = true;
+            is_oobdata = true;
         } else {
-            assert(atmark == 0);
-            is_obbdata = false;
+            is_oobdata = false;
         }
 
-        ret = recv(connfd, buffer, BUFFER_SIZE - 1, 0);
+        char const *data_type = is_oobdata ? "OOB" : "normal";
+        int data_size = is_oobdata ? 1 : (sizeof(buffer) - 1);
+        ret = recv(connfd, buffer, data_size, 0);
         if (ret == -1) {
-            printf("recv socket error: %d\n", errno);
-            close(connfd);
-            close(sockfd);
-            return -1;
+            int err = errno;
+            if (err == EINTR) {
+                printf("recv socket interrupted (%s): %d\n", data_type, err);
+            } else if ((err == EAGAIN) || (err == EWOULDBLOCK)) {
+                printf("recv socket error (%s): %d (EAGAIN/EWOULDBLOCK)\n",
+                        data_type, err);
+            } else {
+                printf("recv socket error (%s): %d\n", data_type, err);
+                break;
+            }
         } else if (ret == 0) {
             printf("connection closed by client\n");
             break;
-        }
-
-        buffer[ret] = '\0';
-
-        if (is_obbdata) {
-            char oob_data = buffer[0];
-            printf("got 1 byte of oob data: '%c'\n", oob_data);
-            if (ret > 1) {
-                printf("got %d byte of normal data: '%s'\n", ret - 1, buffer + 1);
-            }
         } else {
-            printf("got %d bytes of normal data: '%s'\n", ret, buffer);
+            buffer[ret] = '\0';
+            ret = trim_crlf(buffer, ret);
+            printf("got %d bytes of %s data: '%s'\n", ret, data_type, buffer);
         }
     }
 
@@ -104,4 +103,4 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-// gcc -o 07_oobrecv_atmark 07_oobrecv_atmark.cpp
+// g++ -o 07_oobrecv_atmark 07_oobrecv_atmark.cpp common.cpp
