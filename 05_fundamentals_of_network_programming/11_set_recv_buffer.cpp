@@ -1,22 +1,16 @@
 #include "common.h"
 
-#define BUFFER_SIZE 1024
-
 int main(int argc, char *argv[])
 {
-    if (argc <= 3) {
-        printf("usage: %s ip_address port_number recv_buffer_size\n",
+    if (argc < 5) {
+        printf("usage: %s ip_address port_number recvdata_size recvbuf_size\n",
                 basename(argv[0]));
         return 1;
     }
     const char *ip = argv[1];
     int port = atoi(argv[2]);
-
-    struct sockaddr_in addr;
-    bzero(&addr, sizeof(addr));
-    addr.sin_family = AF_INET;
-    inet_pton(AF_INET, ip, &addr.sin_addr);
-    addr.sin_port = htons(port);
+    int recvdata_size = atoi(argv[3]);
+    int recvbuf_size = atoi(argv[4]);
 
     int sockfd = socket(PF_INET, SOCK_STREAM, 0);
     if (sockfd == -1) {
@@ -24,36 +18,31 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    int recvbuf = 0;
-    int recvbuf_len = sizeof(recvbuf);
-    int ret = getsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, &recvbuf,
-            (socklen_t *)&recvbuf_len);
-    if (ret == -1) {
-        printf("getsockopt error: %d\n", errno);
+    int old_recvbuf_size = get_recvbuf_size(sockfd);
+    if (old_recvbuf_size == -1) {
         close(sockfd);
         return -1;
     }
-    printf("recv buffer size (old): %d\n", recvbuf);
 
-    recvbuf = atoi(argv[3]);
-    ret = setsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, &recvbuf,
-            sizeof(recvbuf));
+    int ret = set_recvbuf_size(sockfd, recvbuf_size);
     if (ret == -1) {
-        printf("setsockopt error: %d\n", errno);
         close(sockfd);
         return -1;
     }
-    printf("recv buffer size (set): %d\n", recvbuf);
 
-    recvbuf_len = sizeof(recvbuf);
-    ret = getsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, &recvbuf,
-            (socklen_t *)&recvbuf_len);
-    if (ret == -1) {
-        printf("getsockopt error: %d\n", errno);
+    int cur_recvbuf_size = get_recvbuf_size(sockfd);
+    if (cur_recvbuf_size == -1) {
         close(sockfd);
         return -1;
     }
-    printf("recv buffer size (new): %d\n", recvbuf);
+    printf("recv buffer size: %d, %d, %d\n", old_recvbuf_size,
+            recvbuf_size, cur_recvbuf_size);
+
+    struct sockaddr_in addr;
+    bzero(&addr, sizeof(addr));
+    addr.sin_family = AF_INET;
+    inet_pton(AF_INET, ip, &addr.sin_addr);
+    addr.sin_port = htons(port);
 
     ret = bind(sockfd, (struct sockaddr *)&addr, sizeof(addr));
     if (ret == -1) {
@@ -69,20 +58,21 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    struct sockaddr_in client;
-    socklen_t client_addr = sizeof(client);
-    int connfd = accept(sockfd, (struct sockaddr *)&client, &client_addr);
+    struct sockaddr_in client_addr;
+    socklen_t client_addrlen = sizeof(client_addr);
+    int connfd = accept(sockfd, (struct sockaddr *)&client_addr, &client_addrlen);
     if (connfd == -1) {
         printf("accept socket error: %d\n", errno);
         close(sockfd);
         return -1;
     }
 
-    char buffer[BUFFER_SIZE];
+    char *buffer = new char[recvdata_size];
     while (1) {
-        int ret = recv(connfd, buffer, BUFFER_SIZE - 1, 0);
+        int ret = recv(connfd, buffer, recvdata_size - 1, 0);
         if (ret == -1) {
             printf("recv socket error: %d\n", errno);
+            delete [] buffer;
             close(connfd);
             close(sockfd);
             return -1;
@@ -95,10 +85,11 @@ int main(int argc, char *argv[])
         }
     }
 
+    delete [] buffer;
     close(connfd);
     close(sockfd);
 
     return 0;
 }
 
-// gcc -o 11_set_recv_buffer 11_set_recv_buffer.cpp
+// g++ -o 11_set_recv_buffer 11_set_recv_buffer.cpp common.cpp
