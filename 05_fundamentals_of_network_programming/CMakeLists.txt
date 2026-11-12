@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 set(common_source_file "${CMAKE_CURRENT_SOURCE_DIR}/common.cpp")
 set(common_header_file "${CMAKE_CURRENT_SOURCE_DIR}/common.h")
@@ -52,3 +52,14 @@ else()
     endif()
     add_executable(${EXEFILE} ${SOURCES})
 endif()
+
+# case 1: build all executables
+# cmake --build ./build
+
+# case 2: build a specific executable
+# cmake -DEXEFILE=all ./build
+# cmake --build ./build --target 01_byteorder
+
+# case 3: build a specific executable
+# cmake -DEXEFILE=01_byteorder ./build
+# cmake --build ./build
