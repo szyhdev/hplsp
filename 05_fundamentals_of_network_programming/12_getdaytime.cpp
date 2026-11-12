@@ -1,14 +1,14 @@
 #include "common.h"
 
-// #define USE_GETADDRINFO
+#define USE_GETADDRINFO
 
 #define BUFFER_SIZE 256
 
 int main(int argc, char *argv[])
 {
-    if (argc <= 1) {
-    printf("usage: %s host_name\n", basename(argv[0]));
-    return 1;
+    if (argc < 2) {
+        printf("usage: %s host_name\n", basename(argv[0]));
+        return 1;
     }
     const char *host = argv[1];
 
@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
     }
 
     char buffer[BUFFER_SIZE];
-    ret = read(sockfd, buffer, sizeof(buffer));
+    ret = read(sockfd, buffer, sizeof(buffer) - 1);
     if (ret == -1) {
         printf("read socket error: %d\n", errno);
         close(sockfd);
@@ -81,5 +81,5 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-// gcc -o 12_getdaytime 12_getdaytime.cpp common.cpp
-// $ ./12_getdaytime time.nist.gov
+// g++ -o 12_getdaytime 12_getdaytime.cpp common.cpp
+// ./12_getdaytime time.nist.gov
